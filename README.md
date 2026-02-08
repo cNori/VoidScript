@@ -24,52 +24,52 @@ As mentioned above, due to platform limitations, Void Assembly uses a custom ins
 The instruction style is inspired by IC10 chip instructions from the game *Stationeers*.
 
 ### Instructions and Format
-
+reg* = r0..99 <br>
 valuetype* = `const int | const bool | const float | const enum | reg`
 
-| Op | Arg1 | Arg2 | Arg3 | Arg4 | Arg5 | Description |
-|----|------|------|------|------|------|-------------|
-| **add** | out reg | in valuetype | in valuetype | — | — | Arithmetic addition |
-| **sub** | out reg | in valuetype | in valuetype | — | — | Arithmetic subtraction |
-| **div** | out reg | in valuetype | in valuetype | — | — | Arithmetic division |
-| **mul** | out reg | in valuetype | in valuetype | — | — | Arithmetic multiplication |
-| **rem** | out reg | in valuetype | in valuetype | — | — | Remainder / modulo |
-| **jump** | out label | — | — | — | — | Unconditional jump |
-| **jump** | in valuetype | out label | — | — | — | Conditional jump |
-| **select** | in valuetype | out valuetype | const valuetype[] \| valuetype... | — | — | Select from constant array or variadic arguments. Type is inherited from the first element; all args must match. |
-| **load** | out reg | in var | — | — | — | Load variable into register; may be optimized to move or discarded |
-| **store** | in reg | out var | — | — | — | Store register into variable; may be optimized to move or discarded |
-| **move** | out reg | in valuetype | — | — | — | Move value; discarded if source and destination are the same register |
-| **copy** | in valuetype | in valuetype | in valuetype | in reg | in reg | Copy memory A[0..arg3] → B[0..arg3]; unsafe and unchecked |
-| **fill** | in valuetype | in valuetype | in reg | in reg | — | Fill memory A[0..arg2]; unsafe and unchecked |
-| **new** | in reg | in valuetype | — | — | — | Allocate memory blob A[arg1]; size in QWORDs; leaks if not tracked |
-| **free** | in reg | in valuetype | — | — | — | Free memory blob A[arg1]; size in QWORDs; leaks if not tracked |
-| **cast** | in reg | out reg | — | — | — | Type-safe cast |
-| **rcast** | in reg | out reg | — | — | — | Reinterpret (bitwise) cast |
-| **min** | out reg | in valuetype | in valuetype | — | — | Minimum |
-| **max** | out reg | in valuetype | in valuetype | — | — | Maximum |
-| **nearest** | out reg | in valuetype | in valuetype | — | — | Nearest value |
-| **ceil** | out reg | in valuetype | — | — | — | Ceiling |
-| **floor** | out reg | in valuetype | — | — | — | Floor |
-| **trunc** | out reg | in valuetype | — | — | — | Truncate |
-| **abs** | out reg | in valuetype | — | — | — | Absolute value |
-| **neg** | out reg | in valuetype | — | — | — | Negation |
-| **sqrt** | out reg | in valuetype | — | — | — | Square root |
-| **copysign** | out reg | in valuetype | in valuetype | — | — | Copy sign from second operand |
-| **equal** | out reg | in valuetype | in valuetype | — | — | Equality comparison |
-| **nequal** | out reg | in valuetype | in valuetype | — | — | Inequality comparison |
-| **gthan** | out reg | in valuetype | in valuetype | — | — | Greater-than |
-| **lthan** | out reg | in valuetype | in valuetype | — | — | Less-than |
-| **gtequal** | out reg | in valuetype | in valuetype | — | — | Greater-than-or-equal |
-| **ltequal** | out reg | in valuetype | in valuetype | — | — | Less-than-or-equal |
-| **and** | out reg | in valuetype | in valuetype | — | — | Bitwise AND |
-| **or** | out reg | in valuetype | in valuetype | — | — | Bitwise OR |
-| **xor** | out reg | in valuetype | in valuetype | — | — | Bitwise XOR |
-| **lshift** | out reg | in valuetype | in valuetype | — | — | Logical left shift |
-| **rshift** | out reg | in valuetype | in valuetype | — | — | Logical right shift |
-| **yield** | — | — | — | — | — | No-op; wastes one CPU cycle |
-| **ret** | — | — | — | — | — | Return from node/function |
-| **call** | in node \| event | args... | — | — | — | Call node or event; all args must be specified; use `_` to discard outputs |
+| Op 			| Arg1 				| Arg2 			| Arg3 								| Description 																											|
+|---------------|-------------------|---------------|-----------------------------------|-----------------------------------------------------------------------------------------------------------------------|
+| **add** 		| out reg 			| in valuetype 	| in valuetype 						| Arithmetic addition																									|
+| **sub** 		| out reg 			| in valuetype 	| in valuetype 						| Arithmetic subtraction 																								|
+| **div** 		| out reg 			| in valuetype 	| in valuetype 						| Arithmetic division 																									|
+| **mul** 		| out reg 			| in valuetype 	| in valuetype 						| Arithmetic multiplication 																							|
+| **rem** 		| out reg 			| in valuetype 	| in valuetype 						| Remainder / modulo 																									|
+| **jump** 		| out label 		| — 			| — 								| Unconditional jump 																									|
+| **jump** 		| in valuetype 		| out label 	| — 								| Conditional jump 																										|
+| **select** 	| in valuetype 		| out valuetype | const valuetype[] \| valuetype... | Selects from constant array or variadic arguments. Type is inherited from the first element; all args must match. 	|
+| **load** 		| out reg 			| in var 		| — 								| Load variable into register; may be optimized to move or discarded 													|
+| **store** 	| in reg 			| out var 		| — 								| Store register into variable; may be optimized to move or discarded 													|
+| **move** 		| out reg 			| in valuetype 	| — 								| Move value; discarded if source and destination are the same register 												|
+| **copy** 		| in reg 			| in reg 		| in valuetype 						| Copy memory A[0..arg3] → B[0..arg3]; unsafe and unchecked 															|
+| **fill** 		| in reg 			| in valuetype 	| - 								| Fill memory A[0..arg2]; unsafe and unchecked 																			|
+| **new** 		| in reg 			| in valuetype 	| — 								| Allocate memory blob A[arg1]; size in QWORDs; leaks if not tracked 													|
+| **free** 		| in reg 			| in valuetype 	| — 								| Free memory blob A[arg1]; size in QWORDs; leaks if not tracked 														|
+| **cast** 		| in reg 			| out reg 		| — 								| Type-safe cast 																										|
+| **rcast** 	| in reg 			| out reg 		| — 								| Reinterpret (bitwise) cast 																							|
+| **min** 		| out reg 			| in valuetype 	| in valuetype 						| Minimum 																												|
+| **max** 		| out reg 			| in valuetype 	| in valuetype 						| Maximum 																												|
+| **nearest** 	| out reg 			| in valuetype 	| in valuetype 						| Nearest value 																										|
+| **ceil** 		| out reg 			| in valuetype 	| — 								| Ceiling 																												|
+| **floor** 	| out reg 			| in valuetype 	| — 								| Floor 																												|
+| **trunc** 	| out reg 			| in valuetype 	| — 								| Truncate 																												|
+| **abs** 		| out reg 			| in valuetype 	| — 								| Absolute value 																										|
+| **neg** 		| out reg 			| in valuetype 	| — 								| Negation 																												|
+| **sqrt** 		| out reg 			| in valuetype 	| — 								| Square root 																											|
+| **copysign** 	| out reg 			| in valuetype 	| in valuetype 						| Copy sign from second operand 																						|
+| **equal** 	| out reg 			| in valuetype 	| in valuetype 						| Equality comparison 																									|
+| **nequal** 	| out reg 			| in valuetype 	| in valuetype 						| Inequality comparison 																								|
+| **gthan** 	| out reg 			| in valuetype 	| in valuetype 						| Greater-than 																											|
+| **lthan** 	| out reg 			| in valuetype 	| in valuetype 						| Less-than 																											|
+| **gtequal** 	| out reg 			| in valuetype 	| in valuetype 						| Greater-than-or-equal 																								|
+| **ltequal** 	| out reg 			| in valuetype 	| in valuetype 						| Less-than-or-equal 																									|
+| **and** 		| out reg 			| in valuetype 	| in valuetype 						| Bitwise AND 																											|
+| **or** 		| out reg 			| in valuetype 	| in valuetype 						| Bitwise OR 																											|
+| **xor** 		| out reg 			| in valuetype 	| in valuetype 						| Bitwise XOR 																											|
+| **lshift** 	| out reg 			| in valuetype 	| in valuetype 						| Logical left shift 																									|
+| **rshift** 	| out reg 			| in valuetype 	| in valuetype 						| Logical right shift 																									|
+| **yield** 	| — 				| — 			| — 								| No-op; wastes one CPU cycle if executed else it can be used to optimize a function 									|
+| **ret** 		| — 				| — 			| — 								| Return from node/function 																							|
+| **call** 		| in node \| event 	| args... 		| — 								| Call node or event; all args must be specified; use `_` to discard outputs 											|
 
 ## Void Script Format
 

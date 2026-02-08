@@ -316,8 +316,6 @@ Nodes are invoked explicitly by name using the following form:
 node <result> = <Type>.<Name>(input arguments)
 ```
 
---------------------------------------------------
-
 ### Call Semantics
 
 - The call creates a node invocation in the execution graph
@@ -327,35 +325,34 @@ node <result> = <Type>.<Name>(input arguments)
 
 If an output value is not needed, it must be explicitly discarded using `_`.
 
---------------------------------------------------
-
 ### Discarding Outputs
 
 When a node has multiple outputs, unused outputs must be explicitly discarded.
 
 ```
-node _ = Math.Add(a, b);
+discard Math.Add(a, b);
 ```
 
 or for multiple outputs:
 
 ```
-node (_, result) = SomeNode(a, b);
+node n = SomeNode(a, b);
+discard n.val 
 ```
-
---------------------------------------------------
 
 ### Calling Nodes on Graph Instances
 
-When calling a node that belongs to a graph instance, the target graph must be specified.
+When calling a node that belongs to a graph instance, the target is automatically set to self.
 
 ```
-node value = myGraph.Compute(x, y);
+node ovalue = myGraph.Compute(x, y);
+```
+can be overwriten by doing
+```
+node ovalue = myGraph.Compute(target,x, y);
 ```
 
-If the call is made outside of a graph context, the target graph is always required, even if the node is marked as `pure`.
-
---------------------------------------------------
+If the call is made outside of a graph context, the target graph is always required, even if the node is marked as `pure` or `const`.
 
 ### Calling Pure Nodes
 

@@ -205,7 +205,7 @@ The `pure` modifier marks a function as pure:
 
 `pure` functions are limited by design.
 
-`pure` may be applied to macro nodes, but macros marked as pure cannot create variables.
+`pure` may be applied to macro nodes, but macros marked as pure cant have exec type as in or out.
 
 ### Node Types
 
@@ -220,7 +220,7 @@ Recursive functions are not allowed.
 
 VoidScript does not have traditional stack frames due to WASM and Void Assembly constraints.
 
-Recursion may only exist for external/native calls.
+Recursion may only exist in external/native calls.
 
 ### Parameters
 
@@ -235,7 +235,7 @@ Node parameters follow this order:
 
 Arrays are always passed by reference.
 
-The `&` modifier is recommended for struct parameters.
+The `&` ref modifier is recommended for struct parameters.
 
 Example:
 
@@ -550,3 +550,266 @@ Execution always ends explicitly or by exhaustion of all exec paths.
 Sequencing is explicit and typically expressed using nodes that expose `out exec[] then`.
 Each index in `then[]` represents a distinct ordered execution output.
 
+## Example
+```cs
+library bool
+{
+    asm Make(out bool value) pure
+    {
+        move r0, 0;
+        store r0, value;
+    }
+
+    asm Make(in const bool const_value, out bool value) pure
+    {
+        move r0, const_value;
+        store r0, value;
+    }
+
+    asm Assign(in bool var, in bool value)
+    {
+        load r0, var;
+        store r0, value;
+    }
+
+    asm And(in bool A, in bool B, out bool value) pure
+    {
+        load r0, A;
+        load r1, B;
+        and r3, r0, r1;
+        store r3, value;
+    }
+
+    asm Or(in bool A, in bool B, out bool value) pure
+    {
+        load r0, A;
+        load r1, B;
+        or r3, r0, r1;
+        store r3, value;
+    }
+
+    asm Not(in bool A, out bool value) pure
+    {
+        load r0, A;
+        not r1, r0;
+        store r1, value;
+    }
+}
+
+library int
+{
+    asm Make(out int value) pure
+    {
+        move r0, 0;
+        store r0, value;
+    }
+
+    asm Make(in const int const_value, out int value) pure
+    {
+        move r0, const_value;
+        store r0, value;
+    }
+
+    asm Assign(in int var, in int value)
+    {
+        load r0, var;
+        store r0, value;
+    }
+
+    asm Add(in int A, in int B, out int value) pure
+    {
+        load r0, A;
+        load r1, B;
+        add r3, r0, r1;
+        store r3, value;
+    }
+
+    asm Subtract(in int A, in int B, out int value) pure
+    {
+        load r0, A;
+        load r1, B;
+        sub r3, r0, r1;
+        store r3, value;
+    }
+
+    asm Multiply(in int A, in int B, out int value) pure
+    {
+        load r0, A;
+        load r1, B;
+        mul r3, r0, r1;
+        store r3, value;
+    }
+
+    asm Equal(in int A, in int B, out bool value) pure
+    {
+        load r0, A;
+        load r1, B;
+        equal r3, r0, r1;
+        store r3, value;
+    }
+
+    asm LessThenEqual(in int A, in int B, out bool value) pure
+    {
+        load r0, A;
+        load r1, B;
+        ltequal r3, r0, r1;
+        store r3, value;
+    }
+}
+
+library FlowControl : global
+{
+	//core node executes code in sequence
+	asm Sequence(in exec execute,out exec[Count] then)
+	{
+	execute:
+		#for then.Count,i
+		#coppy jump then[i];
+		#end
+        ret;
+	}
+
+	//core node if
+	asm Branch(in exec execute,in bool Condition,out exec true,out exec false)
+	{
+	execute:
+		load r0, Condition;
+		jump r0, true;
+		jump false;
+	true:
+		jump Branch.true;		    //link to exec var
+        ret;
+	false:
+        jump Branch.false;		    //link to exec var
+        ret;
+	}
+
+    macro ForLoopWithBreak(in exec execute,in int FirstIndex,in int LastIndex,in exec Break,out exec LoopBody,out int Index,out exec Completed)
+    {
+    	node index  = int.Make();
+    	node broken = bool.Make(false);
+    	node control = Branch(execute,bool.And(bool.Not(broken),int.LessThenEqual(index, LastIndex)))
+    	{
+    		true:
+    		{
+    			Sequence(control.true)
+    			{
+    				then 0:
+    				{
+    					goto LoopBody;
+    				}
+    				then 1:
+    				{
+    					index = int.Add(index, 1);
+    					Index = index;
+    					goto control.execute;
+    				}
+    			}
+    		}
+    		false:
+    		{
+    			goto Completed;
+    		}
+    	}
+    	
+    	execute:
+    	{
+    		index = FirstIndex;
+    		Index = index;
+    		goto control.execute;
+    	}
+    	Break:
+    	{
+    		broken = true;
+    		goto control.execute;
+    	}
+    }
+
+    macro While(in exec execute,in bool Condition,out exec LoopBody,out exec Completed)
+    {
+        node control = Branch(execute, Condition)
+        {
+            true:
+            {
+                Sequence(control.true)
+                {
+                    then 0:
+                    {
+                        goto LoopBody;
+                    }
+                    then 1:
+                    {
+                        goto control.execute;
+                    }
+                }
+            }
+            false:
+            {
+                goto Completed;
+            }
+        }
+    
+        execute:
+        {
+            goto control.execute;
+        }
+    }
+
+    macro ForLoop(in exec execute,in int FirstIndex = 0,in int LastIndex = 1,out exec LoopBody,out int Index,out exec Completed)
+    {
+        node index = int.Make();
+        node control = Branch(execute,int.LessThenEqual(index, LastIndex))
+        {
+            true:
+            {
+                Sequence(control.true)
+                {
+                    then 0:
+                    {
+                        goto LoopBody;
+                    }
+                    then 1:
+                    {
+                        index = int.Add(index, 1);
+                        Index = index;
+                        goto control.execute;
+                    }
+                }
+            }
+            false:
+            {
+                goto Completed;
+            }
+        }
+    
+        execute:
+        {
+            index = FirstIndex;
+            Index = index;
+            goto control.execute;
+        }
+    }
+
+    macro FlipFlop(in exec execute,out exec A,out exec B,out bool IsA)
+    {
+        node state = bool.Make();
+        node control = Branch(execute, state)
+        {
+            true:
+            {
+                goto A;
+            }
+            false:
+            {
+                goto B;
+            }
+        }
+    
+        execute:
+        {
+            state = bool.Not(state);
+            IsA = state;
+            goto control.execute;
+        }
+    }
+```

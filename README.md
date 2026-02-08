@@ -312,9 +312,9 @@ This behavior is required due to how macros are expanded and how storage ownersh
 
 Nodes are invoked explicitly by name using the following form:
 
--+-
+```
 node <result> = <Type>.<Name>(input arguments)
--+-
+```
 
 --------------------------------------------------
 
@@ -333,15 +333,15 @@ If an output value is not needed, it must be explicitly discarded using `_`.
 
 When a node has multiple outputs, unused outputs must be explicitly discarded.
 
--+-
+```
 node _ = Math.Add(a, b);
--+-
+```
 
 or for multiple outputs:
 
--+-
+```
 node (_, result) = SomeNode(a, b);
--+-
+```
 
 --------------------------------------------------
 
@@ -349,9 +349,9 @@ node (_, result) = SomeNode(a, b);
 
 When calling a node that belongs to a graph instance, the target graph must be specified.
 
--+-
+```
 node value = myGraph.Compute(x, y);
--+-
+```
 
 If the call is made outside of a graph context, the target graph is always required, even if the node is marked as `pure`.
 
